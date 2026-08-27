@@ -36,6 +36,13 @@
       "dependencies": {},
       "url": "https://packages.tuanjie.cn"
     },
+    "com.unity.nuget.mono-cecil": {
+      "version": "1.10.2",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.tuanjie.cn"
+    },
     "com.unity.ugui": {
       "version": "1.0.0",
       "depth": 1,

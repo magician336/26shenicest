@@ -1,5 +1,6 @@
 using System;
 using DoNotForgetMe.Network;
+using DoNotForgetMe.Save;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -19,6 +20,7 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] private Button createButton;
     [SerializeField] private Button joinButton;
     [SerializeField] private Button cancelButton;
+    [SerializeField] private Button continueButton;
     [SerializeField] private Text statusText;
 
     [Header("Host 侧房间码展示")]
@@ -30,6 +32,7 @@ public class MainMenuController : MonoBehaviour
     private INetworkSessionService _service;
     private bool _isCancellationRequested;
     private bool _hasPendingError;
+    private bool _awaitNewGameOverwriteConfirm;
 
     private void Start()
     {
@@ -41,9 +44,15 @@ public class MainMenuController : MonoBehaviour
         if (createButton != null) createButton.onClick.AddListener(OnCreateClicked);
         if (joinButton != null) joinButton.onClick.AddListener(OnJoinClicked);
         if (cancelButton != null) cancelButton.onClick.AddListener(OnCancelClicked);
+        if (continueButton != null) continueButton.onClick.AddListener(OnContinueClicked);
 
         ClearGeneratedRoomCode();
         SetConnectingControls(false);
+
+        if (continueButton != null)
+        {
+            continueButton.gameObject.SetActive(HostSaveService.Exists());
+        }
 
         SetStatus(_service.IsAvailable
             ? "输入对方给的房间码加入，或创建一个新会话"
@@ -60,6 +69,39 @@ public class MainMenuController : MonoBehaviour
     }
 
     private void OnCreateClicked()
+    {
+        if (HostSaveService.Exists() && !_awaitNewGameOverwriteConfirm)
+        {
+            _awaitNewGameOverwriteConfirm = true;
+            SetStatus("已有进度。再次点击“创建会话”将开始新游戏并覆盖存档。");
+            return;
+        }
+
+        if (_awaitNewGameOverwriteConfirm)
+        {
+            HostSaveService.Delete();
+            _awaitNewGameOverwriteConfirm = false;
+            if (continueButton != null) continueButton.gameObject.SetActive(false);
+        }
+
+        HostSaveContext.Clear();
+        StartHost();
+    }
+
+    private void OnContinueClicked()
+    {
+        if (!HostSaveService.TryLoad(out var save))
+        {
+            SetStatus("存档无法读取，请创建新会话开始游戏。");
+            if (continueButton != null) continueButton.gameObject.SetActive(false);
+            return;
+        }
+
+        HostSaveContext.SetPending(save);
+        StartHost();
+    }
+
+    private void StartHost()
     {
         _generatedRoomCode = RoomCodeGenerator.Generate();
         if (roomCodeDisplay != null)

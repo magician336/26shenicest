@@ -56,6 +56,9 @@ public static class MainMenuSetup
         var cancelButton = CreateButton(canvas.transform, "CancelButton", new Vector2(0, -205),
             new Vector2(240, 56), "取消连接", new Color(0.55f, 0.3f, 0.3f));
 
+        var continueButton = CreateButton(canvas.transform, "ContinueButton", new Vector2(0, -120),
+            new Vector2(320, 70), "继续游戏", new Color(0.55f, 0.42f, 0.25f));
+
         // --- 状态文本 ---
         var statusText = CreateText(canvas.transform, "StatusText", new Vector2(0, -300),
             new Vector2(1200, 80), 26, new Color(0.75f, 0.75f, 0.8f), TextAnchor.MiddleCenter,
@@ -70,6 +73,7 @@ public static class MainMenuSetup
         so.FindProperty("createButton").objectReferenceValue = createButton;
         so.FindProperty("joinButton").objectReferenceValue = joinButton;
         so.FindProperty("cancelButton").objectReferenceValue = cancelButton;
+        so.FindProperty("continueButton").objectReferenceValue = continueButton;
         so.FindProperty("statusText").objectReferenceValue = statusText;
         so.FindProperty("roomCodeDisplay").objectReferenceValue = roomCodeDisplay;
         so.ApplyModifiedProperties();

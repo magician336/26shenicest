@@ -2,13 +2,13 @@
 
 ## 目标与范围
 
-`MainMenu` 是本项目纯联机模式的入口场景。玩家可创建或加入一个**会话**；创建方为 Host，加入方为 Client。用于配对的短代码称为**房间码**。这些术语遵循 [CONTEXT.md](../../CONTEXT.md)。
+`MainMenu` 是本项目纯联机模式的入口场景。玩家可创建或加入一个**会话**；创建方为 Host，加入方为 Client。用于配对的短代码称为**房间码**。这些术语遵循 [CONTEXT.md](../../CONTEXT.md)。会话使用 Photon Fusion 2 的 Host 模式，只有 Host 负责权威游戏决策。
 
 本交付包含：
 
 - 一键生成可预览的主菜单场景；
 - 创建会话、加入会话与取消连接的菜单交互；
-- 缺少 Fusion 或 `Game` 场景时的可诊断提示；
+- Fusion 未启用或缺少 `Game` 场景时的可诊断提示；
 - 生成后的场景与 Build Settings 检查流程。
 
 它不导入 Photon Fusion、不创建 `Game` 场景，也不替代双端联机冒烟测试。
@@ -16,7 +16,8 @@
 ## 前置条件
 
 - 使用 Tuanjie Engine 1.6.12（Unity 2022.3.61 基础）打开 `DoNotForgetMe/New Tuanjie Project/`。
-- 若要进行真实联机测试，先完成 [install-fusion.md](../install-fusion.md) 的 SDK 导入和 Fusion 实现代码移入步骤。
+- 若要进行真实联机测试，先完成 [install-fusion.md](../install-fusion.md)：导入 Fusion SDK、在 Fusion Hub 填写本机 AppId，并在 Player 的 Scripting Define Symbols 中增加 `FUSION_PRESENT`。
+- `Assets/Photon/Fusion/Resources/PhotonAppSettings.asset` 是本机密钥配置，已被 Git 忽略；不得提交 AppId。
 - `Game` 场景必须已创建并在 Build Settings 中启用。若尚未创建，先运行 `Tools > 3C Setup > Create Basic Scene`。
 
 ## 正式搭建流程
@@ -56,7 +57,8 @@
 
 ### 联机前置条件
 
-- [ ] Fusion 已按 [install-fusion.md](../install-fusion.md) 导入，且 `FusionSessionService` 和 `FusionNetworkBootstrap` 已放入运行时代码目录。
+- [ ] Fusion 已按 [install-fusion.md](../install-fusion.md) 导入，Fusion Hub 中填写了有效的本机 AppId，且 Player Scripting Define Symbols 包含 `FUSION_PRESENT`。
+- [ ] 编译后 `FusionSessionService` 与 `FusionNetworkBootstrap` 位于 `Assets/_Project/Scripts/Network/Fusion/` 且已启用；启动时会自动注册真实的会话服务。
 - [ ] Build Settings 中存在且启用了 `MainMenu` 与 `Game`，并且 `MainMenu` 在前。
 - [ ] Console 没有编译错误。
 
@@ -71,8 +73,15 @@
 - [ ] 任意一端在游戏中断开，另一端返回主菜单并收到会话结束提示。
 - [ ] 连接失败后，Host 展示的房间码被清空；加入方输入框保留原输入，便于更正或重试。
 
+### 交付前检查
+
+- [ ] `Assets/Photon/`（Fusion SDK）及对应 `.meta` 文件已纳入版本控制。
+- [ ] `PhotonAppSettings.asset` 未被暂存或提交；每位交付接收者在自己的 Fusion Hub 中填入 AppId。
+- [ ] 不提交 `Library/`、`Temp/`、构建产物或 `.unitypackage`。
+- [ ] 在两台设备或双开实例上完成一次“创建会话 → 加入会话 → 进入 Game → 断线返回菜单”的验证，并记录所用地区与结果。
+
 ## 实现边界
 
-`MainMenuController` 只依赖 `INetworkSessionService`，不直接引用 Fusion，因此未导入 SDK 时仍可编译和预览。Fusion 导入前默认使用 `NotInstalledSessionService`；导入后由启动器注册真实实现。
+`MainMenuController` 只依赖 `INetworkSessionService`，不直接引用 Fusion，因此未导入 SDK 时仍可编译和预览。Fusion 未启用时默认使用 `NotInstalledSessionService`；SDK 已导入且定义了 `FUSION_PRESENT` 后，由 `FusionNetworkBootstrap` 注册真实实现。
 
 房间码是会话名称，不是游戏场景中的“房间”。因此界面与文档使用“会话”描述联机配对，保留“房间码”描述短代码。

@@ -52,6 +52,14 @@ public class GameManager : MonoBehaviour
         SceneManager.sceneLoaded -= HandleSceneLoaded;
     }
 
+    private void OnApplicationPause(bool pauseStatus)
+    {
+        if (pauseStatus)
+        {
+            DoNotForgetMe.Network.Gameplay.SessionGameplayCoordinator.Instance?.SaveLastStableState();
+        }
+    }
+
     private void Start()
     {
         StartGame();

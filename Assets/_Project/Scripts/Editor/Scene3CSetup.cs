@@ -1,6 +1,8 @@
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using UnityEngine.EventSystems;
+using DoNotForgetMe.MiniGame.Cooking;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -11,6 +13,7 @@ public static class Scene3CSetup
     private const string INPUT_SETTINGS_PATH = "Assets/_Project/Settings/PlayerInputSettings.asset";
     private const string PLAYER_SETTINGS_PATH = "Assets/_Project/Settings/PlayerSettings.asset";
     private const string MINIGAME_SETTINGS_PATH = "Assets/_Project/Settings/MiniGameSettings.asset";
+    private const string TOMATO_EGG_RECIPE_PATH = "Assets/_Project/Settings/TomatoEggRecipe.asset";
 
     private static readonly int GroundLayer = 8;
     private static readonly int PlayerLayer = 9;
@@ -24,6 +27,7 @@ public static class Scene3CSetup
         var inputSettings = CreateInputSettingsAsset();
         var playerSettings = CreatePlayerSettingsAsset();
         var miniGameSettings = CreateMiniGameSettingsAsset();
+        var tomatoEggRecipe = CreateTomatoEggRecipeAsset();
 
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -44,13 +48,26 @@ public static class Scene3CSetup
 
         // --- 相机（房间式）---
         var camObj = CreateCamera(player.transform);
+        CreateEventSystem();
 
         // --- GameManager ---
         var gmObj = new GameObject("GameManager");
         gmObj.AddComponent<GameManager>();
 
+        // --- Host 权威的会话流程 ---
+        var coordinatorObj = new GameObject("SessionGameplayCoordinator");
+        var coordinator = coordinatorObj.AddComponent<DoNotForgetMe.Network.Gameplay.SessionGameplayCoordinator>();
+        var coordinatorSo = new SerializedObject(coordinator);
+        coordinatorSo.FindProperty("recipes").arraySize = 1;
+        coordinatorSo.FindProperty("recipes").GetArrayElementAtIndex(0).objectReferenceValue = tomatoEggRecipe;
+        coordinatorSo.ApplyModifiedProperties();
+#if FUSION_PRESENT
+        coordinatorObj.AddComponent<Fusion.NetworkObject>();
+        coordinatorObj.AddComponent<DoNotForgetMe.Network.Fusion.FusionGameplayBridge>();
+#endif
+
         // --- MiniGameManager + 模板 ---
-        CreateMiniGameManager(miniGameSettings);
+        CreateMiniGameManager(miniGameSettings, tomatoEggRecipe);
 
         // --- MiniGameTrigger（交互物体）---
         CreateMiniGameTrigger(miniGameSettings);
@@ -135,6 +152,18 @@ public static class Scene3CSetup
         return settings;
     }
 
+    private static RecipeConfig CreateTomatoEggRecipeAsset()
+    {
+        var existing = AssetDatabase.LoadAssetAtPath<RecipeConfig>(TOMATO_EGG_RECIPE_PATH);
+        if (existing != null) return existing;
+
+        var recipe = ScriptableObject.CreateInstance<RecipeConfig>();
+        System.IO.Directory.CreateDirectory("Assets/_Project/Settings");
+        AssetDatabase.CreateAsset(recipe, TOMATO_EGG_RECIPE_PATH);
+        AssetDatabase.SaveAssets();
+        return recipe;
+    }
+
     private static GameObject CreatePlayer(InputSettings inputSettings, PlayerSettings playerSettings, int interactableMask)
     {
         var playerObj = new GameObject("Player");
@@ -153,6 +182,11 @@ public static class Scene3CSetup
         rb.freezeRotation = true;
         rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+#if FUSION_PRESENT
+        // 场景 NetworkObject 由 Host 模拟；NetworkTransform 将女儿的探索位置同步给母亲端。
+        playerObj.AddComponent<Fusion.NetworkObject>();
+        playerObj.AddComponent<Fusion.NetworkTransform>();
+#endif
 
         // BoxCollider2D
         var col = playerObj.AddComponent<BoxCollider2D>();
@@ -207,16 +241,14 @@ public static class Scene3CSetup
         return camObj;
     }
 
-    private static void CreateMiniGameManager(MiniGameSettings settings)
+    private static void CreateMiniGameManager(MiniGameSettings settings, RecipeConfig recipe)
     {
         var mgmObj = new GameObject("MiniGameManager");
-        mgmObj.AddComponent<MiniGameManager>();
-
-        // SampleMiniGame 模板（不激活，MiniGameManager 自动注册）
-        var templateObj = new GameObject("SampleMiniGame");
-        templateObj.transform.SetParent(mgmObj.transform, false);
-        templateObj.SetActive(false);
-        templateObj.AddComponent<SampleMiniGame>();
+        var manager = mgmObj.AddComponent<MiniGameManager>();
+        var managerSo = new SerializedObject(manager);
+        managerSo.FindProperty("recipes").arraySize = 1;
+        managerSo.FindProperty("recipes").GetArrayElementAtIndex(0).objectReferenceValue = recipe;
+        managerSo.ApplyModifiedProperties();
     }
 
     private static void CreateMiniGameTrigger(MiniGameSettings settings)
@@ -235,9 +267,16 @@ public static class Scene3CSetup
 
         var trigger = triggerObj.AddComponent<MiniGameTrigger>();
         var triggerSo = new SerializedObject(trigger);
-        triggerSo.FindProperty("miniGameId").stringValue = SampleMiniGame.Id;
+        triggerSo.FindProperty("miniGameId").stringValue = "tomato_egg";
         triggerSo.FindProperty("settings").objectReferenceValue = settings;
         triggerSo.ApplyModifiedProperties();
+    }
+
+    private static void CreateEventSystem()
+    {
+        var eventSystem = new GameObject("EventSystem");
+        eventSystem.AddComponent<EventSystem>();
+        eventSystem.AddComponent<StandaloneInputModule>();
     }
 
     private static void CreatePlatform(string name, Vector3 position, Vector3 scale, LayerMask groundLayer)

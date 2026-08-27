@@ -1,4 +1,5 @@
 using UnityEngine;
+using DoNotForgetMe.Network;
 
 public class PlayerInputHandler : MonoBehaviour
 {
@@ -28,7 +29,8 @@ public class PlayerInputHandler : MonoBehaviour
 
     void Update()
     {
-        if (playerController == null)
+        if (playerController == null || NetworkSessionManager.Service.Role != SessionRole.Host ||
+            (MiniGameManager.Instance != null && MiniGameManager.Instance.IsActive))
         {
             return;
         }

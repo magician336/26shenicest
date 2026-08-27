@@ -47,3 +47,6 @@ Desktop.ini
 *.apk
 *.aab
 *.unitypackage
+
+# Photon Fusion credentials are local environment configuration.
+Assets/Photon/Fusion/Resources/PhotonAppSettings.asset
