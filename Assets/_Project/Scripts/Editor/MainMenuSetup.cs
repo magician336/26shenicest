@@ -10,7 +10,7 @@ using UnityEngine.UI;
 /// <summary>
 /// 主菜单场景生成器（镜像 Scene3CSetup 的代码驱动搭建模式）。
 /// 菜单：Tools/3C Setup/Create Main Menu
-/// 生成内容：Canvas（标题/房间码输入/创建房间/加入房间/状态文本/房间码大字展示）
+/// 生成内容：Canvas（标题/房间码输入/创建会话/加入会话/取消连接/状态文本/房间码大字展示）
 ///          + EventSystem + MainMenuController，并保存到 Assets/_Project/Scenes/MainMenu.unity，
 /// 且确保 MainMenu 位于 Build Settings 首位（纯联机游戏的入口场景，见 ADR 0001）。
 /// </summary>
@@ -38,7 +38,7 @@ public static class MainMenuSetup
             new Vector2(900, 100), 64, new Color(0.95f, 0.95f, 0.98f), TextAnchor.MiddleCenter,
             "DO NOT FORGET ME");
 
-        // --- Host 侧房间码大字展示（创建房间后出现） ---
+        // --- Host 侧房间码大字展示（创建会话后出现） ---
         var roomCodeDisplay = CreateText(canvas.transform, "RoomCodeDisplay", new Vector2(0, 190),
             new Vector2(900, 90), 56, new Color(0.98f, 0.85f, 0.3f), TextAnchor.MiddleCenter,
             string.Empty);
@@ -48,13 +48,16 @@ public static class MainMenuSetup
 
         // --- 按钮 ---
         var createButton = CreateButton(canvas.transform, "CreateButton", new Vector2(-190, -120),
-            new Vector2(320, 70), "创建房间", new Color(0.22f, 0.55f, 0.9f));
+            new Vector2(320, 70), "创建会话", new Color(0.22f, 0.55f, 0.9f));
 
         var joinButton = CreateButton(canvas.transform, "JoinButton", new Vector2(190, -120),
-            new Vector2(320, 70), "加入房间", new Color(0.2f, 0.65f, 0.45f));
+            new Vector2(320, 70), "加入会话", new Color(0.2f, 0.65f, 0.45f));
+
+        var cancelButton = CreateButton(canvas.transform, "CancelButton", new Vector2(0, -205),
+            new Vector2(240, 56), "取消连接", new Color(0.55f, 0.3f, 0.3f));
 
         // --- 状态文本 ---
-        var statusText = CreateText(canvas.transform, "StatusText", new Vector2(0, -260),
+        var statusText = CreateText(canvas.transform, "StatusText", new Vector2(0, -300),
             new Vector2(1200, 80), 26, new Color(0.75f, 0.75f, 0.8f), TextAnchor.MiddleCenter,
             "正在初始化…");
 
@@ -66,6 +69,7 @@ public static class MainMenuSetup
         so.FindProperty("roomCodeInput").objectReferenceValue = roomCodeInput;
         so.FindProperty("createButton").objectReferenceValue = createButton;
         so.FindProperty("joinButton").objectReferenceValue = joinButton;
+        so.FindProperty("cancelButton").objectReferenceValue = cancelButton;
         so.FindProperty("statusText").objectReferenceValue = statusText;
         so.FindProperty("roomCodeDisplay").objectReferenceValue = roomCodeDisplay;
         so.ApplyModifiedProperties();

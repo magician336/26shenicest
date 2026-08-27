@@ -6,8 +6,8 @@ using UnityEngine.UI;
 /// <summary>
 /// 主菜单控制器：纯联机入口（ADR 0001 决策——无单机模式）。
 /// 职责：
-/// 1. 「创建房间」：生成房间码并作为 Host 启动会话，把房间码大字展示给玩家以便口头告知对方；
-/// 2. 「加入房间」：校验输入的房间码（4~6 位无歧义字符）并作为 Client 加入；
+/// 1. 「创建会话」：生成房间码并作为 Host 启动会话，把房间码大字展示给玩家以便口头告知对方；
+/// 2. 「加入会话」：校验输入的房间码（4~6 位无歧义字符）并作为 Client 加入；
 /// 3. 呈现会话状态与错误信息（断线即结束会话，见 ADR 0001 断线策略）。
 /// 本类不直接依赖 Photon Fusion，通过 INetworkSessionService 交互，
 /// 因此在 Fusion SDK 导入前项目仍可编译、主菜单可预览。
@@ -18,40 +18,45 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] private InputField roomCodeInput;
     [SerializeField] private Button createButton;
     [SerializeField] private Button joinButton;
+    [SerializeField] private Button cancelButton;
     [SerializeField] private Text statusText;
 
     [Header("Host 侧房间码展示")]
-    [Tooltip("创建房间后大字展示的房间码文本（Host 需念给对方听）")]
+    [Tooltip("创建会话后大字展示的房间码文本（Host 需念给对方听）")]
     [SerializeField] private Text roomCodeDisplay;
 
     private SessionState _lastState = SessionState.Disconnected;
     private string _generatedRoomCode;
+    private INetworkSessionService _service;
+    private bool _isCancellationRequested;
+    private bool _hasPendingError;
 
     private void Start()
     {
-        var service = NetworkSessionManager.Service;
+        _service = NetworkSessionManager.Service;
 
-        service.StateChanged += OnStateChanged;
-        service.Error += OnError;
+        _service.StateChanged += OnStateChanged;
+        _service.Error += OnError;
 
-        createButton.onClick.AddListener(OnCreateClicked);
-        joinButton.onClick.AddListener(OnJoinClicked);
+        if (createButton != null) createButton.onClick.AddListener(OnCreateClicked);
+        if (joinButton != null) joinButton.onClick.AddListener(OnJoinClicked);
+        if (cancelButton != null) cancelButton.onClick.AddListener(OnCancelClicked);
 
-        if (roomCodeDisplay != null)
-        {
-            roomCodeDisplay.text = string.Empty;
-        }
+        ClearGeneratedRoomCode();
+        SetConnectingControls(false);
 
-        SetStatus(service.IsAvailable
-            ? "输入对方给的房间码加入，或创建一个新房间"
+        SetStatus(_service.IsAvailable
+            ? "输入对方给的房间码加入，或创建一个新会话"
             : "网络层未安装：主菜单可预览，联机需先导入 Photon Fusion SDK（docs/install-fusion.md）");
     }
 
     private void OnDestroy()
     {
-        var service = NetworkSessionManager.Service;
-        service.StateChanged -= OnStateChanged;
-        service.Error -= OnError;
+        if (_service != null)
+        {
+            _service.StateChanged -= OnStateChanged;
+            _service.Error -= OnError;
+        }
     }
 
     private void OnCreateClicked()
@@ -62,10 +67,10 @@ public class MainMenuController : MonoBehaviour
             roomCodeDisplay.text = _generatedRoomCode;
         }
 
-        SetStatus("房间码已生成，等待对方加入…");
-        SetButtonsEnabled(false);
+        SetStatus("房间码已生成，等待对方加入会话…");
+        SetConnectingControls(true);
 
-        NetworkSessionManager.Service.StartHost(_generatedRoomCode);
+        _service.StartHost(_generatedRoomCode);
     }
 
     private void OnJoinClicked()
@@ -78,10 +83,22 @@ public class MainMenuController : MonoBehaviour
             return;
         }
 
-        SetStatus("正在加入房间 " + code + " …");
-        SetButtonsEnabled(false);
+        SetStatus("正在加入会话 " + code + " …");
+        SetConnectingControls(true);
 
-        NetworkSessionManager.Service.StartClient(code);
+        _service.StartClient(code);
+    }
+
+    private void OnCancelClicked()
+    {
+        if (_service == null || _service.State != SessionState.Connecting)
+        {
+            return;
+        }
+
+        _isCancellationRequested = true;
+        SetStatus("正在取消连接…");
+        _service.Leave();
     }
 
     private void OnStateChanged(SessionState state)
@@ -90,25 +107,34 @@ public class MainMenuController : MonoBehaviour
         {
             case SessionState.Connecting:
                 SetStatus("连接中…");
+                SetConnectingControls(true);
                 break;
 
             case SessionState.Connected:
                 // 双端就绪。Host 侧继续展示房间码；场景切换由网络层负责。
                 SetStatus("已连接！正在进入游戏…");
+                SetConnectingControls(false);
                 break;
 
             case SessionState.Disconnected:
                 // 决策（ADR 0001 断线策略）：任一方断线即结束会话回主菜单。
-                if (_lastState == SessionState.Connected)
+                ClearGeneratedRoomCode();
+                SetConnectingControls(false);
+
+                if (_isCancellationRequested)
                 {
-                    SetStatus("对方已断开，会话已结束。可重新创建或加入房间。");
-                    SetButtonsEnabled(true);
+                    SetStatus("已取消连接。可重新创建或加入会话。");
+                    _isCancellationRequested = false;
                 }
-                else if (_lastState == SessionState.Connecting)
+                else if (_lastState == SessionState.Connected)
                 {
-                    // 连接失败（非中途断线），恢复按钮。具体原因走 OnError。
-                    SetButtonsEnabled(true);
+                    SetStatus("对方已断开，会话已结束。可重新创建或加入会话。");
                 }
+                else if (_lastState == SessionState.Connecting && !_hasPendingError)
+                {
+                    SetStatus("连接已结束。可重新创建或加入会话。");
+                }
+                _hasPendingError = false;
                 break;
         }
 
@@ -117,8 +143,11 @@ public class MainMenuController : MonoBehaviour
 
     private void OnError(string message)
     {
+        _hasPendingError = true;
+        _isCancellationRequested = false;
+        ClearGeneratedRoomCode();
         SetStatus(message);
-        SetButtonsEnabled(true);
+        SetConnectingControls(false);
     }
 
     private void SetStatus(string message)
@@ -130,9 +159,19 @@ public class MainMenuController : MonoBehaviour
         Debug.Log("[MainMenu] " + message);
     }
 
-    private void SetButtonsEnabled(bool enabled)
+    private void SetConnectingControls(bool isConnecting)
     {
-        if (createButton != null) createButton.interactable = enabled;
-        if (joinButton != null) joinButton.interactable = enabled;
+        if (createButton != null) createButton.interactable = !isConnecting;
+        if (joinButton != null) joinButton.interactable = !isConnecting;
+        if (cancelButton != null) cancelButton.gameObject.SetActive(isConnecting);
+    }
+
+    private void ClearGeneratedRoomCode()
+    {
+        _generatedRoomCode = string.Empty;
+        if (roomCodeDisplay != null)
+        {
+            roomCodeDisplay.text = string.Empty;
+        }
     }
 }
