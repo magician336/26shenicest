@@ -1,6 +1,4 @@
 using UnityEngine;
-using DoNotForgetMe.Network;
-using DoNotForgetMe.Network.Gameplay;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerController : MonoBehaviour
@@ -72,13 +70,6 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        if (!CanControlExploration())
-        {
-            SetMovementInput(0f);
-            Move(0f);
-            return;
-        }
-
         CaptureFallbackInput();
 
         if (stateMachine?.CurrentState == null)
@@ -86,18 +77,6 @@ public class PlayerController : MonoBehaviour
 
         stateMachine.CurrentState.HandleInput();
         stateMachine.CurrentState.LogicUpdate();
-    }
-
-    private static bool CanControlExploration()
-    {
-        var coordinator = SessionGameplayCoordinator.Instance;
-        if (coordinator != null && coordinator.State.phase != GameplayPhase.Exploration)
-        {
-            return false;
-        }
-
-        // 探索阶段仅女儿（Host）拥有输入权；Client 始终观战。
-        return NetworkSessionManager.Service.Role == SessionRole.Host;
     }
 
     private void ApplySettings()

@@ -10,9 +10,9 @@
 
 | 项 | 状态 |
 |---|---|
-| Fusion AppId | 在 Fusion Hub 本地配置（不提交到仓库） |
+| Fusion AppId | 需在本机 Fusion Hub / PhotonAppSettings 中填写；该资产已被 Git 忽略，不能提交 |
 | Asset Serialization = Force Text | ✅ 已满足（`EditorSettings.asset` 中 `m_SerializationMode: 2`） |
-| 主菜单骨架代码 | ✅ 已就位（不依赖 Fusion，未装包也能编译、能预览 UI） |
+| 主菜单与 Fusion 接入代码 | ✅ 已就位；直接依赖 Fusion 的脚本由 `FUSION_PRESENT` 条件编译保护 |
 
 ## 安装步骤
 
@@ -33,23 +33,28 @@
 在 Tuanjie 编辑器中：
 
 1. `Edit > Project Settings > Player > Other Settings > Api Compatibility Level`
-   改为 **.NET Standard 2.1**（当前是 .NET Framework，Fusion 2 的异步网络库依赖此等级，不切换可能产生难排查的编译错误）。
+   改为 **.NET Standard 2.1**（Fusion 2 的异步网络库依赖此等级，不切换可能产生难排查的编译错误）。
+2. `Edit > Project Settings > Player > Other Settings > Scripting Define Symbols`
+   增加 `FUSION_PRESENT`。
 
 ### 第 3 步：导入 SDK
 
 1. `Assets > Import Package > Custom Package…`
 2. 选择第 1 步下载的 `photon-fusion-2.1.2-stable-2279.unitypackage`
 3. 导入窗口中点 **Import**（全部默认勾选）
-4. 导入后在 **Fusion Hub** 填入本机的 Fusion AppId；不要把 AppId 写入脚本或提交到仓库。
+4. 导入后若弹出 **Fusion Hub** 欢迎窗口：填写你自己的 Fusion AppId。
+   `Assets/Photon/Fusion/Resources/PhotonAppSettings.asset` 是本机配置，已被 `.gitignore` 忽略，不要提交。
 5. 等待编译完成。若报 `Mono.Cecil` 缺失（Tuanjie 注册表缺少该包时）：
    `Window > Package Manager > + > Add package from git URL`，输入
    `com.unity.nuget.mono-cecil@1.10.2`
 
-### 第 4 步：启用项目内 Fusion 代码
+### 第 4 步：确认 Fusion 实现已启用
 
-运行时代码已在 `Assets/_Project/Scripts/Network/Fusion/`。导入 SDK 后，在
-**Project Settings > Player > Scripting Define Symbols** 增加 `FUSION_PRESENT`，随后重新运行
-`Tools/3C Setup/Create Basic Scene`，使场景生成器为会话协调器添加 `NetworkObject` 与同步桥接组件。
+以下文件已在运行时代码目录中，但只有定义 `FUSION_PRESENT` 后才会参与编译：
+
+- `Assets/_Project/Scripts/Network/Fusion/FusionSessionService.cs` —— `INetworkSessionService` 的 Fusion Host 模式实现；
+- `Assets/_Project/Scripts/Network/Fusion/FusionNetworkBootstrap.cs` —— 启动时注册会话服务；
+- `Assets/_Project/Scripts/Network/Fusion/FusionGameplayBridge.cs` —— Host 权威玩法意图与状态同步桥。
 
 ### 第 5 步：生成场景
 
@@ -62,7 +67,7 @@
 - [ ] 编译无错误（Console 干净）
 - [ ] 打开 MainMenu 场景，Play：能看到标题、"输入房间码"输入框、创建/加入按钮
 - [ ] 点「创建房间」：出现 5 位房间码大字 + 状态变为"等待对方加入"
-- [ ] Console 出现 `FusionSessionService` 已注册的日志，且 Fusion Hub 中的本地 AppId 配置有效
+- [ ] Console 出现 `[Net] FusionSessionService registered`
 - [ ] （联机冒烟）本机双开：一个实例创建房间，另一个输入房间码加入，双端进入 Game 场景；
       任一端停止 Play，另一端回到主菜单并提示"对方已断开"
 

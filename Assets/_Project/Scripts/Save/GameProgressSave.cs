@@ -1,18 +1,36 @@
 using System;
-using DoNotForgetMe.MiniGame.Cooking;
+using DoNotForgetMe.Network.Gameplay;
 
 namespace DoNotForgetMe.Save
 {
+    /// <summary>
+    /// Host 侧持久化进度快照。Client 不保存权威状态，只在加入后接收 Host 同步。
+    /// </summary>
     [Serializable]
     public class GameProgressSave
     {
-        public const int CurrentVersion = 1;
+        public string CurrentRoomId = "Room_A";
+        public GameplayPhase Phase = GameplayPhase.Exploration;
+        public string ActiveMiniGameId = string.Empty;
+        public string LastCompletedMiniGameId = string.Empty;
+        public int CompletedMiniGameCount;
+        public string[] CompletedMiniGameIds = Array.Empty<string>();
+        public string UpdatedAtUtc = string.Empty;
 
-        public int version = CurrentVersion;
-        public string activeSceneName;
-        public string activeRecipeId;
-        public bool hasInterruptedMiniGame;
-        public CookingGameState cookingState;
-        public string[] collectedRewardIds = Array.Empty<string>();
+        public GameProgressSave Clone()
+        {
+            return new GameProgressSave
+            {
+                CurrentRoomId = CurrentRoomId,
+                Phase = Phase,
+                ActiveMiniGameId = ActiveMiniGameId,
+                LastCompletedMiniGameId = LastCompletedMiniGameId,
+                CompletedMiniGameCount = CompletedMiniGameCount,
+                CompletedMiniGameIds = CompletedMiniGameIds != null
+                    ? (string[])CompletedMiniGameIds.Clone()
+                    : Array.Empty<string>(),
+                UpdatedAtUtc = UpdatedAtUtc
+            };
+        }
     }
 }

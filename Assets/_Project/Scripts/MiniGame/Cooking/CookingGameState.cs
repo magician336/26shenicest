@@ -1,42 +1,33 @@
 using System;
-using System.Collections.Generic;
 using DoNotForgetMe.Network.Gameplay;
 
 namespace DoNotForgetMe.MiniGame.Cooking
 {
-    /// <summary>Host 权威的可序列化做饭状态；客户端只把它用于渲染私有视图。</summary>
+    /// <summary>做饭小游戏同步状态。Host 修改，Client 只渲染。</summary>
     [Serializable]
     public class CookingGameState
     {
-        public GameplayPhase phase = GameplayPhase.Exploration;
-        public string recipeId;
-        public CookingStep step = CookingStep.MotherSelectIngredients;
-        public List<string> selectedIngredients = new();
-        public List<string> droppedIngredients = new();
-        public bool motherFoodComplete;
-        public bool daughterUnlocked;
-        public bool daughterSeasoningComplete;
-        public string selectedSeasoning;
-        public int hintLevel;
-        public bool hintRequested;
-        public bool completed;
+        public string RecipeId = string.Empty;
+        public GameplayPhase Phase = GameplayPhase.Exploration;
+        public CookingStep CurrentStep = CookingStep.None;
+        public int StepIndex;
+        public bool IsComplete;
+        public string LastActor = string.Empty;
+        public string HostPrompt = string.Empty;
+        public string ClientPrompt = string.Empty;
 
         public CookingGameState Clone()
         {
             return new CookingGameState
             {
-                phase = phase,
-                recipeId = recipeId,
-                step = step,
-                selectedIngredients = selectedIngredients != null ? new List<string>(selectedIngredients) : new List<string>(),
-                droppedIngredients = droppedIngredients != null ? new List<string>(droppedIngredients) : new List<string>(),
-                motherFoodComplete = motherFoodComplete,
-                daughterUnlocked = daughterUnlocked,
-                daughterSeasoningComplete = daughterSeasoningComplete,
-                selectedSeasoning = selectedSeasoning,
-                hintLevel = hintLevel,
-                hintRequested = hintRequested,
-                completed = completed
+                RecipeId = RecipeId,
+                Phase = Phase,
+                CurrentStep = CurrentStep,
+                StepIndex = StepIndex,
+                IsComplete = IsComplete,
+                LastActor = LastActor,
+                HostPrompt = HostPrompt,
+                ClientPrompt = ClientPrompt
             };
         }
     }

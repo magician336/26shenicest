@@ -1,33 +1,43 @@
 using System;
+using DoNotForgetMe.MiniGame.Cooking;
 
 namespace DoNotForgetMe.Network.Gameplay
 {
-    public enum GameplayIntentType
-    {
-        StartMiniGame,
-        SelectIngredient,
-        DropIngredient,
-        SelectSeasoning,
-        RequestHint,
-        ShowHint,
-        InterruptMiniGame,
-        ResumeMiniGame,
-        RestartMiniGame,
-        FinishMiniGame
-    }
-
+    /// <summary>Client 上报给 Host 的玩法意图。Host 仍负责最终判定。</summary>
     [Serializable]
     public struct GameplayIntent
     {
-        public GameplayIntentType type;
-        public string recipeId;
-        public string itemId;
+        public SessionRole Role;
+        public GameplayIntentType Type;
+        public string TargetId;
+        public CookingStep CookingStep;
 
-        public GameplayIntent(GameplayIntentType type, string recipeId = null, string itemId = null)
+        public static GameplayIntent StartMiniGame(SessionRole role, string gameId)
         {
-            this.type = type;
-            this.recipeId = recipeId;
-            this.itemId = itemId;
+            return new GameplayIntent
+            {
+                Role = role,
+                Type = GameplayIntentType.StartMiniGame,
+                TargetId = gameId,
+                CookingStep = CookingStep.None
+            };
         }
+
+        public static GameplayIntent CompleteCookingStep(SessionRole role, string gameId, CookingStep step)
+        {
+            return new GameplayIntent
+            {
+                Role = role,
+                Type = GameplayIntentType.CompleteCookingStep,
+                TargetId = gameId,
+                CookingStep = step
+            };
+        }
+    }
+
+    public enum GameplayIntentType
+    {
+        StartMiniGame,
+        CompleteCookingStep
     }
 }

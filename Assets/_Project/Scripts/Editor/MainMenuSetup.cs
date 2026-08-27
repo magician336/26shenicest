@@ -53,14 +53,16 @@ public static class MainMenuSetup
         var joinButton = CreateButton(canvas.transform, "JoinButton", new Vector2(190, -120),
             new Vector2(320, 70), "加入会话", new Color(0.2f, 0.65f, 0.45f));
 
-        var cancelButton = CreateButton(canvas.transform, "CancelButton", new Vector2(0, -205),
-            new Vector2(240, 56), "取消连接", new Color(0.55f, 0.3f, 0.3f));
+        var continueButton = CreateButton(canvas.transform, "ContinueButton", new Vector2(0, -205),
+            new Vector2(320, 56), "继续 Host 存档", new Color(0.55f, 0.45f, 0.8f));
+        continueButton.gameObject.SetActive(false);
 
-        var continueButton = CreateButton(canvas.transform, "ContinueButton", new Vector2(0, -120),
-            new Vector2(320, 70), "继续游戏", new Color(0.55f, 0.42f, 0.25f));
+        var cancelButton = CreateButton(canvas.transform, "CancelButton", new Vector2(0, -275),
+            new Vector2(240, 56), "取消连接", new Color(0.55f, 0.3f, 0.3f));
+        cancelButton.gameObject.SetActive(false);
 
         // --- 状态文本 ---
-        var statusText = CreateText(canvas.transform, "StatusText", new Vector2(0, -300),
+        var statusText = CreateText(canvas.transform, "StatusText", new Vector2(0, -365),
             new Vector2(1200, 80), 26, new Color(0.75f, 0.75f, 0.8f), TextAnchor.MiddleCenter,
             "正在初始化…");
 
@@ -72,8 +74,8 @@ public static class MainMenuSetup
         so.FindProperty("roomCodeInput").objectReferenceValue = roomCodeInput;
         so.FindProperty("createButton").objectReferenceValue = createButton;
         so.FindProperty("joinButton").objectReferenceValue = joinButton;
-        so.FindProperty("cancelButton").objectReferenceValue = cancelButton;
         so.FindProperty("continueButton").objectReferenceValue = continueButton;
+        so.FindProperty("cancelButton").objectReferenceValue = cancelButton;
         so.FindProperty("statusText").objectReferenceValue = statusText;
         so.FindProperty("roomCodeDisplay").objectReferenceValue = roomCodeDisplay;
         so.ApplyModifiedProperties();
@@ -84,8 +86,8 @@ public static class MainMenuSetup
         EnsureSceneFirstInBuildSettings(SCENE_PATH);
 
         Debug.Log("[MainMenu Setup] Scene created at " + SCENE_PATH);
-        Debug.Log("[MainMenu Setup] Buttons: Create Room (Host) / Join Room (Client). Room code: 4-6 chars.");
-        Debug.Log("[MainMenu Setup] Before Fusion SDK import, buttons show a friendly error only.");
+        Debug.Log("[MainMenu Setup] Buttons: Create Session (Host) / Join Session (Client) / Continue Host Save.");
+        Debug.Log("[MainMenu Setup] Before Fusion SDK import and FUSION_PRESENT, buttons show a friendly error only.");
     }
 
     // ---------------------------------------------------------------

@@ -4,16 +4,33 @@ using UnityEngine;
 
 namespace DoNotForgetMe.Save
 {
-    /// <summary>ADR 0003：唯一的 Host 本地自动存档槽位。</summary>
+    /// <summary>
+    /// Host 本地存档服务。Photon AppId 等本机密钥仍交给 Fusion 配置资产管理，不写入存档。
+    /// </summary>
     public static class HostSaveService
     {
-        private const string FileName = "do-not-forget-me-host-save.json";
+        private const string FileName = "host-progress.json";
 
-        public static string SavePath => Path.Combine(Application.persistentDataPath, FileName);
+        private static string SavePath => Path.Combine(Application.persistentDataPath, FileName);
 
         public static bool Exists()
         {
             return File.Exists(SavePath);
+        }
+
+        public static void Save(GameProgressSave save)
+        {
+            if (save == null) return;
+
+            save.UpdatedAtUtc = DateTime.UtcNow.ToString("O");
+
+            var directory = Path.GetDirectoryName(SavePath);
+            if (!string.IsNullOrEmpty(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            File.WriteAllText(SavePath, JsonUtility.ToJson(save, true));
         }
 
         public static bool TryLoad(out GameProgressSave save)
@@ -23,36 +40,28 @@ namespace DoNotForgetMe.Save
 
             try
             {
-                var json = File.ReadAllText(SavePath);
-                save = JsonUtility.FromJson<GameProgressSave>(json);
-                return save != null && save.version == GameProgressSave.CurrentVersion;
+                save = JsonUtility.FromJson<GameProgressSave>(File.ReadAllText(SavePath));
+                return save != null;
             }
-            catch (Exception exception)
+            catch (Exception ex)
             {
-                Debug.LogWarning("[Save] 读取 Host 存档失败：" + exception.Message);
+                Debug.LogWarning("[HostSave] 读取存档失败：" + ex.Message);
                 return false;
-            }
-        }
-
-        public static void Save(GameProgressSave save)
-        {
-            if (save == null) return;
-
-            try
-            {
-                var directory = Path.GetDirectoryName(SavePath);
-                if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
-                File.WriteAllText(SavePath, JsonUtility.ToJson(save, true));
-            }
-            catch (Exception exception)
-            {
-                Debug.LogError("[Save] 写入 Host 存档失败：" + exception.Message);
             }
         }
 
         public static void Delete()
         {
-            if (Exists()) File.Delete(SavePath);
+            if (!Exists()) return;
+
+            try
+            {
+                File.Delete(SavePath);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning("[HostSave] 删除存档失败：" + ex.Message);
+            }
         }
     }
 }

@@ -6,8 +6,8 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Photon/FusionDemos/Fusion-Intro-Shared/Scenes/FusionIntroShared.unity
-    guid: 0c93e24ebcb1fed489eeaf2f36cfb925
+    path: Assets/_Project/Scenes/MainMenu.unity
+    guid: 4154c70d41a47fb44b49ad486c4bef11
   m_BuildProfiles: []
   m_configObjects: {}
   m_SlimFeaturesWeixinMiniGame:

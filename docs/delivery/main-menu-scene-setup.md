@@ -7,7 +7,7 @@
 本交付包含：
 
 - 一键生成可预览的主菜单场景；
-- 创建会话、加入会话与取消连接的菜单交互；
+- 创建会话、继续 Host 存档、加入会话与取消连接的菜单交互；
 - Fusion 未启用或缺少 `Game` 场景时的可诊断提示；
 - 生成后的场景与 Build Settings 检查流程。
 
@@ -42,7 +42,7 @@
 - `EventSystem`：使用 `StandaloneInputModule`；
 - `MainMenuController`：已自动关联所有 UI 引用。
 
-按钮默认显示“创建会话”和“加入会话”。仅在连接过程中显示“取消连接”。生成器使用 `CanvasScaler` 的 `1920 x 1080` 参考分辨率。
+按钮默认显示“创建会话”和“加入会话”；存在 Host 存档时额外显示“继续 Host 存档”。仅在连接过程中显示“取消连接”。生成器使用 `CanvasScaler` 的 `1920 x 1080` 参考分辨率。
 
 ## 行为验收
 
@@ -51,14 +51,14 @@
 - [ ] 场景能无编译错误打开并运行。
 - [ ] 能看到标题、房间码输入框、“创建会话”和“加入会话”。
 - [ ] 输入少于 4 位、超过 6 位，或包含 `0`、`O`、`1`、`I`、`L` 的房间码时，显示校验说明且不发起连接。
-- [ ] 点击创建或加入时，显示网络层未安装提示；菜单恢复可再次操作状态。
+- [ ] 点击创建或加入时，显示 Fusion 未启用提示；菜单恢复可再次操作状态。
 
 此阶段仅证明 UI 和本地校验可用，不表示联机可用。
 
 ### 联机前置条件
 
 - [ ] Fusion 已按 [install-fusion.md](../install-fusion.md) 导入，Fusion Hub 中填写了有效的本机 AppId，且 Player Scripting Define Symbols 包含 `FUSION_PRESENT`。
-- [ ] 编译后 `FusionSessionService` 与 `FusionNetworkBootstrap` 位于 `Assets/_Project/Scripts/Network/Fusion/` 且已启用；启动时会自动注册真实的会话服务。
+- [ ] 编译后 `FusionSessionService`、`FusionNetworkBootstrap` 与 `FusionGameplayBridge` 位于 `Assets/_Project/Scripts/Network/Fusion/` 且已启用；启动时会自动注册真实的会话服务。
 - [ ] Build Settings 中存在且启用了 `MainMenu` 与 `Game`，并且 `MainMenu` 在前。
 - [ ] Console 没有编译错误。
 
@@ -72,6 +72,7 @@
 - [ ] 在连接中点击“取消连接”，留在主菜单，隐藏取消按钮，清空 Host 房间码，并可重新创建或加入会话。
 - [ ] 任意一端在游戏中断开，另一端返回主菜单并收到会话结束提示。
 - [ ] 连接失败后，Host 展示的房间码被清空；加入方输入框保留原输入，便于更正或重试。
+- [ ] 存在 Host 存档时，主菜单显示“继续 Host 存档”；点击后生成新的房间码并创建 Host 会话。
 
 ### 交付前检查
 

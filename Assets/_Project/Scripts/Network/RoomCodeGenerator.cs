@@ -43,10 +43,20 @@ namespace DoNotForgetMe.Network
             return true;
         }
 
-        /// <summary>规范化输入（去空格、转大写）。</summary>
+        /// <summary>规范化输入（去空白、转大写）。</summary>
         public static string Normalize(string code)
         {
-            return code == null ? string.Empty : code.Trim().ToUpperInvariant();
+            if (code == null) return string.Empty;
+
+            var sb = new StringBuilder(code.Length);
+            foreach (var c in code)
+            {
+                if (!char.IsWhiteSpace(c))
+                {
+                    sb.Append(char.ToUpperInvariant(c));
+                }
+            }
+            return sb.ToString();
         }
     }
 }

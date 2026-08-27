@@ -48,5 +48,6 @@ Desktop.ini
 *.aab
 *.unitypackage
 
-# Photon Fusion credentials are local environment configuration.
+# Local Photon Fusion secrets
 Assets/Photon/Fusion/Resources/PhotonAppSettings.asset
+Assets/Photon/Fusion/Resources/PhotonAppSettings.asset.meta

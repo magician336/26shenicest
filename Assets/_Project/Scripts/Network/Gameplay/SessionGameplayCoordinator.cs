@@ -3,28 +3,32 @@ using System.Collections.Generic;
 using DoNotForgetMe.MiniGame.Cooking;
 using DoNotForgetMe.Save;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace DoNotForgetMe.Network.Gameplay
 {
-    /// <summary>Host 权威的游戏流程状态机；所有有效状态变化都从这里产生。</summary>
+    /// <summary>
+    /// 会话内玩法协调器。Host 拥有权威状态，Client 通过 IGameplayTransport 上报意图。
+    /// </summary>
+    [DisallowMultipleComponent]
     public class SessionGameplayCoordinator : MonoBehaviour
     {
         public static SessionGameplayCoordinator Instance { get; private set; }
 
+        [Header("流程")]
+        [SerializeField] private string currentRoomId = "Room_A";
         [SerializeField] private RecipeConfig[] recipes;
 
-        public CookingGameState State { get; private set; } = new();
-        public event Action<CookingGameState> StateChanged;
-        public event Action<string> FeedbackRequested;
-
-        private readonly HashSet<string> _collectedRewards = new();
+        private readonly HashSet<string> _completedMiniGames = new HashSet<string>();
         private IGameplayTransport _transport;
-        private CookingGameState _lastStableState = new();
+        private global::MiniGameManager _miniGameManager;
+        private CookingGameState _cookingState = new CookingGameState();
 
-        public bool IsHostAuthority => NetworkSessionManager.Service.Role == SessionRole.Host;
-        public bool IsMother => NetworkSessionManager.Service.Role == SessionRole.Client;
-        public bool IsDaughter => NetworkSessionManager.Service.Role == SessionRole.Host;
+        public SessionRole LocalRole => _transport != null ? _transport.LocalRole : NetworkSessionManager.Service.Role;
+        public bool IsHostAuthority => _transport == null
+            ? NetworkSessionManager.Service.Role != SessionRole.Client
+            : _transport.IsHostAuthority;
+
+        public CookingGameState CookingState => _cookingState.Clone();
 
         private void Awake()
         {
@@ -35,293 +39,240 @@ namespace DoNotForgetMe.Network.Gameplay
             }
 
             Instance = this;
+            _miniGameManager = FindObjectOfType<MiniGameManager>();
+            TryInstallTransport(FindTransportInScene());
         }
 
         private void Start()
         {
-            var pendingSave = HostSaveContext.Consume();
-            if (pendingSave != null)
+            if (IsHostAuthority)
             {
-                RestoreHostSave(pendingSave);
+                var pendingSave = HostSaveContext.Consume();
+                if (pendingSave != null)
+                {
+                    ApplySave(pendingSave);
+                    Debug.Log("[Gameplay] Host save restored");
+                }
+                else
+                {
+                    SaveLastStableState();
+                }
             }
         }
 
-        public void RegisterTransport(IGameplayTransport transport)
+        private void OnDestroy()
         {
-            _transport = transport;
-            if (IsHostAuthority && _transport != null)
+            if (Instance == this)
             {
-                _transport.BroadcastState(State.Clone());
+                Instance = null;
             }
+
+            UninstallTransport();
         }
 
-        public void RestoreHostSave(GameProgressSave save)
+        public void SetTransport(IGameplayTransport transport)
         {
-            if (!IsHostAuthority || save == null) return;
-
-            State = save.cookingState != null ? save.cookingState.Clone() : new CookingGameState();
-            _lastStableState = State.Clone();
-            _collectedRewards.Clear();
-            foreach (var rewardId in save.collectedRewardIds ?? Array.Empty<string>())
-            {
-                _collectedRewards.Add(rewardId);
-            }
-            PublishState(false);
+            TryInstallTransport(transport);
         }
 
-        public void ApplyAuthoritativeState(CookingGameState state)
-        {
-            if (state == null) return;
-            State = state.Clone();
-            StateChanged?.Invoke(State.Clone());
-        }
-
-        public void Request(GameplayIntent intent)
+        public void RequestMiniGame(string gameId)
         {
             if (IsHostAuthority)
             {
-                HandleHostIntent(intent, SessionRole.Host);
+                StartMiniGameAsHost(gameId);
                 return;
             }
 
-            _transport?.SendIntent(intent);
+            Debug.Log("[Gameplay] Client 无小游戏触发权，等待 Host 操作。");
         }
 
-        /// <summary>只能由 Fusion Host RPC 回调或本地 Host 调用。</summary>
-        public void HandleHostIntent(GameplayIntent intent, SessionRole requester)
+        public void SubmitCookingStep(string gameId, CookingStep step)
         {
-            if (!IsHostAuthority) return;
-            if (!CanRequesterPerform(intent.type, requester)) return;
-
-            switch (intent.type)
+            if (IsHostAuthority)
             {
-                case GameplayIntentType.StartMiniGame:
-                    StartMiniGame(intent.recipeId);
-                    break;
-                case GameplayIntentType.SelectIngredient:
-                    SelectIngredient(intent.itemId);
-                    break;
-                case GameplayIntentType.DropIngredient:
-                    DropIngredient(intent.itemId);
-                    break;
-                case GameplayIntentType.SelectSeasoning:
-                    SelectSeasoning(intent.itemId);
-                    break;
-                case GameplayIntentType.RequestHint:
-                    RequestHint();
-                    break;
-                case GameplayIntentType.ShowHint:
-                    ShowNextHint();
-                    break;
-                case GameplayIntentType.InterruptMiniGame:
-                    InterruptMiniGame();
-                    break;
-                case GameplayIntentType.ResumeMiniGame:
-                    ResumeMiniGame();
-                    break;
-                case GameplayIntentType.RestartMiniGame:
-                    RestartMiniGame();
-                    break;
-                case GameplayIntentType.FinishMiniGame:
-                    FinishMiniGame();
-                    break;
-            }
-        }
-
-        private void StartMiniGame(string recipeId)
-        {
-            if (State.phase != GameplayPhase.Exploration || FindRecipe(recipeId) == null) return;
-
-            State = new CookingGameState
-            {
-                phase = GameplayPhase.MiniGame,
-                recipeId = recipeId,
-                step = CookingStep.MotherSelectIngredients
-            };
-            PublishStableState();
-        }
-
-        private void SelectIngredient(string itemId)
-        {
-            var recipe = CurrentRecipe;
-            if (recipe == null || State.phase != GameplayPhase.MiniGame || State.step != CookingStep.MotherSelectIngredients) return;
-
-            if (!recipe.IsRequiredIngredient(itemId) || State.selectedIngredients.Contains(itemId))
-            {
-                FeedbackRequested?.Invoke("wrong_select");
+                ApplyCookingStep(LocalRole, gameId, step);
                 return;
             }
 
-            State.selectedIngredients.Add(itemId);
-            if (State.selectedIngredients.Count == recipe.RequiredIngredients.Length)
-            {
-                State.step = CookingStep.MotherDropIngredients;
-            }
-            PublishState(false);
+            _transport?.SendIntent(GameplayIntent.CompleteCookingStep(LocalRole, gameId, step));
         }
 
-        private void DropIngredient(string itemId)
+        public void ApplyRemoteState(CookingGameState state)
         {
-            var recipe = CurrentRecipe;
-            if (recipe == null || State.phase != GameplayPhase.MiniGame || State.step != CookingStep.MotherDropIngredients) return;
+            if (state == null) return;
 
-            if (!State.selectedIngredients.Contains(itemId) || State.droppedIngredients.Contains(itemId))
+            _cookingState = state.Clone();
+            if (_cookingState.Phase == GameplayPhase.MiniGame && _miniGameManager != null && !_miniGameManager.IsActive)
             {
-                FeedbackRequested?.Invoke("wrong_drop");
-                return;
-            }
-
-            State.droppedIngredients.Add(itemId);
-            if (State.droppedIngredients.Count != recipe.RequiredIngredients.Length)
-            {
-                PublishState(false);
-                return;
+                var recipe = FindRecipe(_cookingState.RecipeId);
+                if (recipe != null)
+                {
+                    _miniGameManager.StartCookingMiniGame(recipe, _cookingState, this, LocalRole);
+                    return;
+                }
             }
 
-            State.motherFoodComplete = true;
-            State.daughterUnlocked = true;
-            State.step = CookingStep.DaughterSeason;
-            PublishStableState();
-        }
-
-        private void SelectSeasoning(string itemId)
-        {
-            var recipe = CurrentRecipe;
-            if (recipe == null || State.phase != GameplayPhase.MiniGame || State.step != CookingStep.DaughterSeason) return;
-
-            if (!recipe.IsCorrectSeasoning(itemId))
-            {
-                FeedbackRequested?.Invoke("wrong_seasoning");
-                return;
-            }
-
-            State.selectedSeasoning = itemId;
-            State.daughterSeasoningComplete = true;
-            State.completed = true;
-            State.step = CookingStep.Complete;
-            foreach (var rewardId in recipe.RewardIds)
-            {
-                _collectedRewards.Add(rewardId);
-            }
-            PublishStableState();
-        }
-
-        private void RequestHint()
-        {
-            if (State.phase != GameplayPhase.MiniGame || State.completed) return;
-            State.hintRequested = true;
-            PublishState(false);
-        }
-
-        private void ShowNextHint()
-        {
-            var recipe = CurrentRecipe;
-            if (recipe == null || !State.hintRequested || State.hintLevel >= recipe.HintTexts.Length) return;
-
-            State.hintRequested = false;
-            State.hintLevel++;
-            PublishState(false);
-        }
-
-        private void InterruptMiniGame()
-        {
-            if (State.phase != GameplayPhase.MiniGame || State.completed) return;
-            State.phase = GameplayPhase.MiniGameInterrupted;
-            PublishStableState();
-        }
-
-        private void ResumeMiniGame()
-        {
-            if (State.phase != GameplayPhase.MiniGameInterrupted) return;
-            State.phase = GameplayPhase.MiniGame;
-            PublishStableState();
-        }
-
-        private void RestartMiniGame()
-        {
-            if (State.phase != GameplayPhase.MiniGameInterrupted) return;
-            var recipeId = State.recipeId;
-            State = new CookingGameState
-            {
-                phase = GameplayPhase.MiniGame,
-                recipeId = recipeId,
-                step = CookingStep.MotherSelectIngredients
-            };
-            PublishStableState();
-        }
-
-        private void FinishMiniGame()
-        {
-            if (State.phase != GameplayPhase.MiniGame || !State.completed) return;
-            State = new CookingGameState { phase = GameplayPhase.Exploration };
-            PublishStableState();
-        }
-
-        private void PublishStableState()
-        {
-            _lastStableState = State.Clone();
-            SaveLastStableState();
-            PublishState(true);
+            _miniGameManager?.ApplyCookingState(_cookingState);
         }
 
         public void SaveLastStableState()
         {
             if (!IsHostAuthority) return;
-            SaveHostProgress(_lastStableState);
-        }
-
-        private void PublishState(bool stable)
-        {
-            var snapshot = State.Clone();
-            _transport?.BroadcastState(snapshot);
-            StateChanged?.Invoke(snapshot);
-        }
-
-        private void SaveHostProgress(CookingGameState savedState)
-        {
-            if (!IsHostAuthority) return;
 
             HostSaveService.Save(new GameProgressSave
             {
-                activeSceneName = SceneManager.GetActiveScene().name,
-                activeRecipeId = savedState.recipeId,
-                hasInterruptedMiniGame = savedState.phase == GameplayPhase.MiniGameInterrupted,
-                cookingState = savedState.Clone(),
-                collectedRewardIds = new List<string>(_collectedRewards).ToArray()
+                CurrentRoomId = currentRoomId,
+                Phase = _cookingState.Phase,
+                ActiveMiniGameId = _cookingState.Phase == GameplayPhase.MiniGame ? _cookingState.RecipeId : string.Empty,
+                LastCompletedMiniGameId = _cookingState.IsComplete ? _cookingState.RecipeId : string.Empty,
+                CompletedMiniGameCount = _completedMiniGames.Count,
+                CompletedMiniGameIds = new List<string>(_completedMiniGames).ToArray()
             });
         }
 
-        private RecipeConfig CurrentRecipe => FindRecipe(State.recipeId);
-
-        private static bool CanRequesterPerform(GameplayIntentType intentType, SessionRole requester)
+        private void TryInstallTransport(IGameplayTransport transport)
         {
-            switch (intentType)
+            if (transport == null || ReferenceEquals(_transport, transport)) return;
+
+            UninstallTransport();
+            _transport = transport;
+            _transport.IntentReceived += HandleIntent;
+            _transport.StateReceived += ApplyRemoteState;
+        }
+
+        private void UninstallTransport()
+        {
+            if (_transport == null) return;
+
+            _transport.IntentReceived -= HandleIntent;
+            _transport.StateReceived -= ApplyRemoteState;
+            _transport = null;
+        }
+
+        private void HandleIntent(GameplayIntent intent)
+        {
+            if (!IsHostAuthority) return;
+
+            switch (intent.Type)
             {
-                case GameplayIntentType.SelectIngredient:
-                case GameplayIntentType.DropIngredient:
-                case GameplayIntentType.RequestHint:
-                    return requester == SessionRole.Client;
-
                 case GameplayIntentType.StartMiniGame:
-                case GameplayIntentType.SelectSeasoning:
-                case GameplayIntentType.ShowHint:
-                case GameplayIntentType.InterruptMiniGame:
-                case GameplayIntentType.ResumeMiniGame:
-                case GameplayIntentType.RestartMiniGame:
-                case GameplayIntentType.FinishMiniGame:
-                    return requester == SessionRole.Host;
+                    StartMiniGameAsHost(intent.TargetId);
+                    break;
 
-                default:
-                    return false;
+                case GameplayIntentType.CompleteCookingStep:
+                    ApplyCookingStep(intent.Role, intent.TargetId, intent.CookingStep);
+                    break;
             }
         }
 
-        private RecipeConfig FindRecipe(string recipeId)
+        private void StartMiniGameAsHost(string gameId)
+        {
+            var recipe = FindRecipe(gameId);
+            if (recipe == null)
+            {
+                Debug.LogWarning("[Gameplay] 未找到配方：" + gameId);
+                return;
+            }
+
+            _cookingState = CreateStateForRecipe(recipe, 0);
+            _miniGameManager?.StartCookingMiniGame(recipe, _cookingState, this, LocalRole);
+            PublishState();
+            SaveLastStableState();
+        }
+
+        private void ApplyCookingStep(SessionRole role, string gameId, CookingStep step)
+        {
+            if (_cookingState == null || _cookingState.Phase != GameplayPhase.MiniGame) return;
+            if (_cookingState.RecipeId != gameId) return;
+            if (_cookingState.CurrentStep != step) return;
+
+            _cookingState.LastActor = role.ToString();
+
+            var recipe = FindRecipe(gameId);
+            if (recipe == null) return;
+
+            if (recipe.IsFinalStep(_cookingState.StepIndex))
+            {
+                _cookingState.CurrentStep = CookingStep.Complete;
+                _cookingState.Phase = GameplayPhase.Completed;
+                _cookingState.IsComplete = true;
+                _cookingState.HostPrompt = "料理完成。";
+                _cookingState.ClientPrompt = "料理完成。";
+                _completedMiniGames.Add(gameId);
+            }
+            else
+            {
+                _cookingState = CreateStateForRecipe(recipe, _cookingState.StepIndex + 1);
+                _cookingState.LastActor = role.ToString();
+            }
+
+            _miniGameManager?.ApplyCookingState(_cookingState);
+            PublishState();
+            SaveLastStableState();
+        }
+
+        private CookingGameState CreateStateForRecipe(RecipeConfig recipe, int stepIndex)
+        {
+            return new CookingGameState
+            {
+                RecipeId = recipe.recipeId,
+                Phase = GameplayPhase.MiniGame,
+                CurrentStep = recipe.GetStep(stepIndex),
+                StepIndex = stepIndex,
+                IsComplete = false,
+                HostPrompt = recipe.GetPrompt(true, stepIndex),
+                ClientPrompt = recipe.GetPrompt(false, stepIndex)
+            };
+        }
+
+        private void PublishState()
+        {
+            _transport?.BroadcastState(_cookingState);
+        }
+
+        private void ApplySave(GameProgressSave save)
+        {
+            currentRoomId = string.IsNullOrEmpty(save.CurrentRoomId) ? currentRoomId : save.CurrentRoomId;
+            _completedMiniGames.Clear();
+            if (save.CompletedMiniGameIds != null)
+            {
+                foreach (var id in save.CompletedMiniGameIds)
+                {
+                    if (!string.IsNullOrEmpty(id))
+                    {
+                        _completedMiniGames.Add(id);
+                    }
+                }
+            }
+
+            if (!string.IsNullOrEmpty(save.ActiveMiniGameId))
+            {
+                StartMiniGameAsHost(save.ActiveMiniGameId);
+            }
+        }
+
+        private RecipeConfig FindRecipe(string gameId)
         {
             if (recipes == null) return null;
+
             foreach (var recipe in recipes)
             {
-                if (recipe != null && recipe.RecipeId == recipeId) return recipe;
+                if (recipe != null && recipe.recipeId == gameId)
+                {
+                    return recipe;
+                }
+            }
+            return null;
+        }
+
+        private static IGameplayTransport FindTransportInScene()
+        {
+            foreach (var behaviour in FindObjectsOfType<MonoBehaviour>())
+            {
+                if (behaviour is IGameplayTransport transport)
+                {
+                    return transport;
+                }
             }
             return null;
         }

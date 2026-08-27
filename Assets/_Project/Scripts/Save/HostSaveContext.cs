@@ -1,25 +1,29 @@
 namespace DoNotForgetMe.Save
 {
-    /// <summary>主菜单“继续游戏”向已加载 Game 场景传递的 Host 存档。</summary>
+    /// <summary>
+    /// 主菜单加载存档后，在 Game 场景初始化前临时传递给 Host 权威流程。
+    /// </summary>
     public static class HostSaveContext
     {
-        public static GameProgressSave PendingSave { get; private set; }
+        private static GameProgressSave _pendingSave;
+
+        public static bool HasPendingSave => _pendingSave != null;
 
         public static void SetPending(GameProgressSave save)
         {
-            PendingSave = save;
+            _pendingSave = save != null ? save.Clone() : null;
         }
 
         public static GameProgressSave Consume()
         {
-            var save = PendingSave;
-            PendingSave = null;
-            return save;
+            var save = _pendingSave;
+            _pendingSave = null;
+            return save != null ? save.Clone() : null;
         }
 
         public static void Clear()
         {
-            PendingSave = null;
+            _pendingSave = null;
         }
     }
 }

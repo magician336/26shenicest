@@ -3,46 +3,60 @@ using UnityEngine;
 
 namespace DoNotForgetMe.MiniGame.Cooking
 {
-    [CreateAssetMenu(menuName = "Data/MiniGame/Recipe Config", fileName = "RecipeConfig")]
+    /// <summary>做饭小游戏配方与双端提示配置。</summary>
+    [CreateAssetMenu(menuName = "Do Not Forget Me/Cooking Recipe", fileName = "CookingRecipe")]
     public class RecipeConfig : ScriptableObject
     {
-        [SerializeField] private string recipeId = "tomato_egg";
-        [SerializeField] private string displayName = "番茄炒蛋";
-        [SerializeField] private string motherTaskText = "请做番茄炒蛋";
-        [SerializeField] private string daughterTaskText = "查看菜谱改痕，为菜调味";
-        [SerializeField] private string containerId = "wok";
-        [SerializeField] private string[] requiredIngredients = { "tomato", "egg" };
-        [SerializeField] private string[] distractorIngredients = { "cucumber", "ribs" };
-        [SerializeField] private string correctSeasoning = "sugar";
-        [SerializeField] private string[] forbiddenSeasonings = Array.Empty<string>();
-        [SerializeField] private string[] hintTexts =
+        public string recipeId = "tomato_egg";
+        public string displayName = "番茄炒蛋";
+        public CookingStep[] steps =
         {
-            "找一种红色的蔬菜。",
-            "再找一个能打进碗里的食材。",
-            "番茄和鸡蛋轻微发光。"
+            CookingStep.WashTomato,
+            CookingStep.CutTomato,
+            CookingStep.BeatEgg,
+            CookingStep.HeatPan,
+            CookingStep.StirFry,
+            CookingStep.Plate
         };
-        [SerializeField] private string[] rewardIds = { "photo_hongqiang", "tag_fifth_brother" };
 
-        public string RecipeId => recipeId;
-        public string DisplayName => displayName;
-        public string MotherTaskText => motherTaskText;
-        public string DaughterTaskText => daughterTaskText;
-        public string ContainerId => containerId;
-        public string[] RequiredIngredients => requiredIngredients;
-        public string[] DistractorIngredients => distractorIngredients;
-        public string CorrectSeasoning => correctSeasoning;
-        public string[] ForbiddenSeasonings => forbiddenSeasonings;
-        public string[] HintTexts => hintTexts;
-        public string[] RewardIds => rewardIds;
-
-        public bool IsRequiredIngredient(string itemId)
+        [TextArea] public string[] hostPrompts =
         {
-            return Array.IndexOf(requiredIngredients, itemId) >= 0;
+            "你看到番茄和水槽。告诉对方先准备鸡蛋。",
+            "把番茄切好，但不要告诉对方锅已经热了。",
+            "等待对方把鸡蛋打散。",
+            "开火热锅，提醒对方别急着下番茄。",
+            "把食材倒进锅里翻炒。",
+            "装盘完成。"
+        };
+
+        [TextArea] public string[] clientPrompts =
+        {
+            "你看到鸡蛋和碗。告诉 Host 鸡蛋还没处理。",
+            "等待 Host 处理番茄。",
+            "打散鸡蛋，然后告诉 Host 可以热锅。",
+            "观察火候条，提醒 Host 什么时候下锅。",
+            "根据颜色告诉 Host 是否还要继续翻炒。",
+            "确认摆盘方向。"
+        };
+
+        public string GetPrompt(bool hostSide, int stepIndex)
+        {
+            var prompts = hostSide ? hostPrompts : clientPrompts;
+            if (prompts == null || prompts.Length == 0) return string.Empty;
+            var index = Mathf.Clamp(stepIndex, 0, prompts.Length - 1);
+            return prompts[index];
         }
 
-        public bool IsCorrectSeasoning(string itemId)
+        public CookingStep GetStep(int stepIndex)
         {
-            return string.Equals(correctSeasoning, itemId, StringComparison.Ordinal);
+            if (steps == null || steps.Length == 0) return CookingStep.Complete;
+            var index = Mathf.Clamp(stepIndex, 0, steps.Length - 1);
+            return steps[index];
+        }
+
+        public bool IsFinalStep(int stepIndex)
+        {
+            return steps == null || steps.Length == 0 || stepIndex >= steps.Length - 1;
         }
     }
 }

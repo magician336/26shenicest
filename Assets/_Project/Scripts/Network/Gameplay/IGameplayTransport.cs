@@ -1,13 +1,19 @@
+using System;
 using DoNotForgetMe.MiniGame.Cooking;
 
 namespace DoNotForgetMe.Network.Gameplay
 {
     /// <summary>
-    /// 网络适配边界。Fusion 实现负责把客户端意图送到 Host，并把 Host 快照广播回双方。
-    /// 领域与 UI 层不引用 Fusion。
+    /// Host 权威玩法层与具体网络库之间的桥。Fusion 实现见 Network/Fusion。
     /// </summary>
     public interface IGameplayTransport
     {
+        bool IsHostAuthority { get; }
+        SessionRole LocalRole { get; }
+
+        event Action<GameplayIntent> IntentReceived;
+        event Action<CookingGameState> StateReceived;
+
         void SendIntent(GameplayIntent intent);
         void BroadcastState(CookingGameState state);
     }

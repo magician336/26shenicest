@@ -19,8 +19,8 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] private InputField roomCodeInput;
     [SerializeField] private Button createButton;
     [SerializeField] private Button joinButton;
-    [SerializeField] private Button cancelButton;
     [SerializeField] private Button continueButton;
+    [SerializeField] private Button cancelButton;
     [SerializeField] private Text statusText;
 
     [Header("Host 侧房间码展示")]
@@ -43,20 +43,16 @@ public class MainMenuController : MonoBehaviour
 
         if (createButton != null) createButton.onClick.AddListener(OnCreateClicked);
         if (joinButton != null) joinButton.onClick.AddListener(OnJoinClicked);
-        if (cancelButton != null) cancelButton.onClick.AddListener(OnCancelClicked);
         if (continueButton != null) continueButton.onClick.AddListener(OnContinueClicked);
+        if (cancelButton != null) cancelButton.onClick.AddListener(OnCancelClicked);
 
         ClearGeneratedRoomCode();
         SetConnectingControls(false);
-
-        if (continueButton != null)
-        {
-            continueButton.gameObject.SetActive(HostSaveService.Exists());
-        }
+        RefreshContinueButton();
 
         SetStatus(_service.IsAvailable
             ? "输入对方给的房间码加入，或创建一个新会话"
-            : "网络层未安装：主菜单可预览，联机需先导入 Photon Fusion SDK（docs/install-fusion.md）");
+            : "Fusion 未启用：主菜单可预览，联机需按 docs/install-fusion.md 导入 SDK 并添加 FUSION_PRESENT");
     }
 
     private void OnDestroy()
@@ -73,50 +69,22 @@ public class MainMenuController : MonoBehaviour
         if (HostSaveService.Exists() && !_awaitNewGameOverwriteConfirm)
         {
             _awaitNewGameOverwriteConfirm = true;
-            SetStatus("已有进度。再次点击“创建会话”将开始新游戏并覆盖存档。");
+            SetStatus("已有 Host 侧存档。再次点击创建会话会覆盖继续游戏进度。");
             return;
         }
 
-        if (_awaitNewGameOverwriteConfirm)
-        {
-            HostSaveService.Delete();
-            _awaitNewGameOverwriteConfirm = false;
-            if (continueButton != null) continueButton.gameObject.SetActive(false);
-        }
-
+        _awaitNewGameOverwriteConfirm = false;
+        HostSaveService.Delete();
         HostSaveContext.Clear();
-        StartHost();
-    }
+        RefreshContinueButton();
 
-    private void OnContinueClicked()
-    {
-        if (!HostSaveService.TryLoad(out var save))
-        {
-            SetStatus("存档无法读取，请创建新会话开始游戏。");
-            if (continueButton != null) continueButton.gameObject.SetActive(false);
-            return;
-        }
-
-        HostSaveContext.SetPending(save);
-        StartHost();
-    }
-
-    private void StartHost()
-    {
-        _generatedRoomCode = RoomCodeGenerator.Generate();
-        if (roomCodeDisplay != null)
-        {
-            roomCodeDisplay.text = _generatedRoomCode;
-        }
-
-        SetStatus("房间码已生成，等待对方加入会话…");
-        SetConnectingControls(true);
-
-        _service.StartHost(_generatedRoomCode);
+        StartHostWithNewRoomCode();
     }
 
     private void OnJoinClicked()
     {
+        _awaitNewGameOverwriteConfirm = false;
+
         var code = RoomCodeGenerator.Normalize(roomCodeInput != null ? roomCodeInput.text : string.Empty);
 
         if (!RoomCodeGenerator.IsValid(code))
@@ -129,6 +97,35 @@ public class MainMenuController : MonoBehaviour
         SetConnectingControls(true);
 
         _service.StartClient(code);
+    }
+
+    private void OnContinueClicked()
+    {
+        _awaitNewGameOverwriteConfirm = false;
+
+        if (!HostSaveService.TryLoad(out var save))
+        {
+            SetStatus("没有可继续的 Host 存档。");
+            RefreshContinueButton();
+            return;
+        }
+
+        HostSaveContext.SetPending(save);
+        StartHostWithNewRoomCode("已加载 Host 存档，新房间码已生成，等待对方加入会话…");
+    }
+
+    private void StartHostWithNewRoomCode(string status = "房间码已生成，等待对方加入会话…")
+    {
+        _generatedRoomCode = RoomCodeGenerator.Generate();
+        if (roomCodeDisplay != null)
+        {
+            roomCodeDisplay.text = _generatedRoomCode;
+        }
+
+        SetStatus(status);
+        SetConnectingControls(true);
+
+        _service.StartHost(_generatedRoomCode);
     }
 
     private void OnCancelClicked()
@@ -187,9 +184,11 @@ public class MainMenuController : MonoBehaviour
     {
         _hasPendingError = true;
         _isCancellationRequested = false;
+        _awaitNewGameOverwriteConfirm = false;
         ClearGeneratedRoomCode();
         SetStatus(message);
         SetConnectingControls(false);
+        RefreshContinueButton();
     }
 
     private void SetStatus(string message)
@@ -205,7 +204,16 @@ public class MainMenuController : MonoBehaviour
     {
         if (createButton != null) createButton.interactable = !isConnecting;
         if (joinButton != null) joinButton.interactable = !isConnecting;
+        if (continueButton != null) continueButton.interactable = !isConnecting;
         if (cancelButton != null) cancelButton.gameObject.SetActive(isConnecting);
+    }
+
+    private void RefreshContinueButton()
+    {
+        if (continueButton != null)
+        {
+            continueButton.gameObject.SetActive(HostSaveService.Exists());
+        }
     }
 
     private void ClearGeneratedRoomCode()
