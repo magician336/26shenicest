@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ece1db51f9806a4887d3e29b1ad5d1c, type: 3}
+  m_Name: CucumberSaladRecipe
+  m_EditorClassIdentifier: 
+  recipeId: cucumber_salad
+  displayName: "\u51C9\u62CC\u9EC4\u74DC"
+  motherTaskText: "\u8BF7\u505A\u51C9\u62CC\u9EC4\u74DC"
+  daughterTaskText: "\u67E5\u770B\u83DC\u8C31\u6539\u75D5\uFF0C\u4E3A\u83DC\u8C03\u5473"
+  containerId: bowl
+  requiredIngredients:
+  - cucumber
+  distractorIngredients:
+  - tomato
+  - ribs
+  correctSeasoning: vinegar
+  forbiddenSeasonings:
+  - chili
+  seasoningOptions:
+  - vinegar
+  - chili
+  recipeNote: "\u6D2A\u82B3\u559C\u6B22\u9178\u4E00\u70B9\u591A\u52A0\u70B9\u918B\uFF0C\u4F46\u662F\u4E0D\u80FD\u5403\u8FA3\uFF01"
+  containerDisplayName: "\u7897"
+  hintTexts:
+  - "\u627E\u4E00\u79CD\u7EFF\u8272\u7684\u3001\u957F\u6761\u5F62\u7684\u852C\u83DC\u3002"
+  - "\u628A\u5B83\u653E\u8FDB\u7897\u91CC\u3002"
+  - "\u9EC4\u74DC\u5FAE\u5FAE\u53D1\u5149\u3002"
+  nextRecipeId: 
+  nextDialogueId: DLG_Game1ToGame2
+  rewardIds:
+  - photo_hongfang
+  - tag_fourth_sister
+  ingredientSprites:
+  - ingredientId: tomato
+    sprite: {fileID: 21300000, guid: 54a8b5efdcfc4ac498947ba9347825fe, type: 3}
+  - ingredientId: egg
+    sprite: {fileID: 21300000, guid: ae61a4da585b8ba4e920ba56485f9d55, type: 3}
+  - ingredientId: cucumber
+    sprite: {fileID: 21300000, guid: 1561655146d9c3b488c70d03f491e93f, type: 3}
+  - ingredientId: ribs
+    sprite: {fileID: 21300000, guid: d5ba432b6bd6a9b44b94de71cc9b7033, type: 3}
+  - ingredientId: sugar
+    sprite: {fileID: 21300000, guid: f75fc67e2938a014a8fba9f2f3c2c8ab, type: 3}
+  - ingredientId: salt
+    sprite: {fileID: 21300000, guid: 5d304752fb6572e40a51837bcc4ebcfa, type: 3}
+  - ingredientId: vinegar
+    sprite: {fileID: 21300000, guid: 4b82cdb086027aa4f81159cd49c54334, type: 3}
+  - ingredientId: chili
+    sprite: {fileID: 21300000, guid: 7ec54f9087dfa964ca3d000090202657, type: 3}
+  rewardPhotoSprite: {fileID: 21300000, guid: c3a45491be563eb40a1bc9a5c300fc36, type: 3}
+  containerSprite: {fileID: 21300000, guid: 9bf890835bc255c4dabe539d68e972cb, type: 3}
+  cookingBackground: {fileID: 21300000, guid: 3d3e09d287715954da25db3acc4350d0, type: 3}
+  daughterBackground: {fileID: 21300000, guid: f8da9fafdd7ea514e952ec2fd921694f, type: 3}
+  dishPhotoSprite: {fileID: 21300000, guid: 310cc7a318ea0064d9e151c2f6420abc, type: 3}
+  motherCompleteBackground: {fileID: 21300000, guid: fe82d5cf29dfe9e43a8ab709fa6dfa24, type: 3}
+  motherCompleteHint: {fileID: 0}

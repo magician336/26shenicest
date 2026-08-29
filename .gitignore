@@ -1,0 +1,19 @@
+node_modules/
+*.log
+Temp/
+Obj/
+Build/
+Library/
+Logs/
+UserSettings/
+*.csproj
+*.sln
+.vs/
+*.unitypackage
+
+# CLI temp files
+.codely-cli/auto-saves/
+.codely-cli/settings.json
+.codely/clipboard/
+.workbuddy/
+compile_log.txt

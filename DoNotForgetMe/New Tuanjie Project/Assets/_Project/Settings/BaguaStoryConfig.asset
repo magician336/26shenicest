@@ -1,0 +1,111 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24f0c95af356db640a87b652cd69f318, type: 3}
+  m_Name: BaguaStoryConfig
+  m_EditorClassIdentifier: 
+  miniGameId: bagua_old_photo
+  displayName: "\u516B\u5366\u65E7\u4E8B"
+  entries:
+  - characterId: liu_hongxiu
+    displayName: "\u5218\u6D2A\u79C0"
+    portrait: {fileID: 21300000, guid: d046c5a78517c544db0b7f43ca04c8e5, type: 3}
+    nameTagSprite: {fileID: 21300000, guid: 3e724d6c5c17e5e40af757269d375f03, type: 3}
+    storyAudio: {fileID: 8300000, guid: cf57a8a31aa64274db8a932b9764ed7d, type: 3}
+    subtitle: "\u5979\u603B\u662F\u6525\u7740\u90A3\u628A\u94DC\u94A5\u5319\uFF0C\u8BF4\u8FD9\u662F\u5BB6\u91CC\u7684\u547D\u6839\u5B50\u2026\u2026"
+    age: "18\u5C81"
+    title: "\u5927\u59D0"
+  - characterId: liu_hongju
+    displayName: "\u5218\u6D2A\u83CA"
+    portrait: {fileID: 21300000, guid: 662161e93a64db14d96346c50661c5d8, type: 3}
+    nameTagSprite: {fileID: 21300000, guid: ad75231734a4bfa498eca6e8902db059, type: 3}
+    storyAudio: {fileID: 8300000, guid: 861c2ef3fc99d5544972812c891fb496, type: 3}
+    subtitle: "\u94C1\u76AE\u7CD6\u76D2\u91CC\u88C5\u7684\u4E0D\u662F\u7CD6\uFF0C\u662F\u5979\u6512\u4E86\u534A\u5E74\u7684\u6084\u6084\u8BDD\u2026\u2026"
+    age: "13\u5C81"
+    title: "\u4E09\u59B9"
+  - characterId: liu_hongbin
+    displayName: "\u5218\u6D2A\u658C"
+    portrait: {fileID: 21300000, guid: 124ce0cd73dff73408d32284f7139477, type: 3}
+    nameTagSprite: {fileID: 21300000, guid: 7269976954d124c4fadd315ddef4d1ea, type: 3}
+    storyAudio: {fileID: 8300000, guid: 5a78f06dd11bda14ea6db2e8ff58c404, type: 3}
+    subtitle: "\u5C0F\u6728\u8F66\u5431\u5440\u5431\u5440\u5730\u54CD\uFF0C\u4ED6\u8BF4\u90A3\u662F\u4ED6\u7AE5\u5E74\u552F\u4E00\u7684\u8F66\u2026\u2026"
+    age: "8\u5C81"
+    title: "\u516D\u5F1F"
+  itemPlacements:
+  - itemId: key
+    displayName: "\u94DC\u94A5\u5319"
+    sprite: {fileID: 21300000, guid: 80adafbcb8db3814ebba0ad7a0068994, type: 3}
+    anchoredPosition: {x: -480, y: 120}
+    isCorrect: 1
+    characterId: liu_hongxiu
+  - itemId: tin_candy_box
+    displayName: "\u94C1\u76AE\u7CD6\u76D2"
+    sprite: {fileID: 21300000, guid: 65316ac0a40de0b44abd5a48bb8e34e7, type: 3}
+    anchoredPosition: {x: -160, y: 120}
+    isCorrect: 1
+    characterId: liu_hongju
+  - itemId: wooden_cart
+    displayName: "\u5C0F\u6728\u8F66"
+    sprite: {fileID: 21300000, guid: 617564517c40bfa42a27180fe3dce872, type: 3}
+    anchoredPosition: {x: 160, y: 120}
+    isCorrect: 1
+    characterId: liu_hongbin
+  - itemId: old_glasses
+    displayName: 
+    sprite: {fileID: 21300000, guid: c8ba4513e08c5434fbe5f126f508aa1f, type: 3}
+    anchoredPosition: {x: 480, y: 120}
+    isCorrect: 0
+    characterId: 
+  - itemId: red_comb
+    displayName: 
+    sprite: {fileID: 21300000, guid: 3717a1a7df040d247b414e62c5d12c01, type: 3}
+    anchoredPosition: {x: -480, y: -120}
+    isCorrect: 0
+    characterId: 
+  - itemId: scissors
+    displayName: 
+    sprite: {fileID: 21300000, guid: 68c1107d1cf3cdb40bae7db1872f76d4, type: 3}
+    anchoredPosition: {x: -160, y: -120}
+    isCorrect: 0
+    characterId: 
+  - itemId: paper_boat
+    displayName: 
+    sprite: {fileID: 21300000, guid: 6dc1467208321d742909c82ab4c134a6, type: 3}
+    anchoredPosition: {x: 160, y: -120}
+    isCorrect: 0
+    characterId: 
+  - itemId: abacus
+    displayName: 
+    sprite: {fileID: 21300000, guid: 0019dc109d1bf7f449f540928f7d9e9c, type: 3}
+    anchoredPosition: {x: 480, y: -120}
+    isCorrect: 0
+    characterId: 
+  oldFamilyPhoto: {fileID: 21300000, guid: f95b090e2ffbf274c8145a9b3ff9cd4f, type: 3}
+  deskBackground: {fileID: 21300000, guid: f3c6ef887c4608e4494ab19a7b87f244, type: 3}
+  listenButtonSprite: {fileID: 21300000, guid: 7b2200fad5c0c074fb45a638de360815, type: 3}
+  daughterPhotoBackground: {fileID: 21300000, guid: bfcd11e1f12330c4abea5a481332bfda, type: 3}
+  photoZoneSprite: {fileID: 21300000, guid: 33024b3a0199ee34ab431bf9075f6331, type: 3}
+  rewardIds:
+  - bagua_old_family_photo
+  nextDialogueId: DLG_Game2ToGame3
+  photoZones:
+  - zoneId: zone_left
+    correctCharacterId: liu_hongxiu
+    anchoredPosition: {x: -200, y: 60}
+    size: {x: 150, y: 200}
+  - zoneId: zone_center
+    correctCharacterId: liu_hongju
+    anchoredPosition: {x: 0, y: 60}
+    size: {x: 150, y: 200}
+  - zoneId: zone_right
+    correctCharacterId: liu_hongbin
+    anchoredPosition: {x: 200, y: -40}
+    size: {x: 150, y: 200}

@@ -1,0 +1,82 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae45cc960ee2db549bbe29c8726d0685, type: 3}
+  m_Name: AlbumConfig
+  m_EditorClassIdentifier: 
+  miniGameId: album_family_portrait
+  displayName: "\u5168\u5BB6\u798F\u8BA4\u4EBA"
+  entries:
+  - characterId: liu_hongxiu
+    displayName: "\u5218\u6D2A\u79C0"
+    stickerSprite: {fileID: 0}
+    photoSprite: {fileID: 0}
+    clueText: "\u5927\u59D0\uFF0C\u603B\u662F\u6525\u7740\u94DC\u94A5\u5319\u7684\u4EBA\u3002"
+    stickerZonePosition: {x: -400, y: 120}
+    stickerZoneSize: {x: 150, y: 200}
+    nameTagZonePosition: {x: -400, y: -20}
+    nameTagZoneSize: {x: 200, y: 60}
+    hasSticker: 1
+  - characterId: liu_hongmei
+    displayName: "\u5218\u6D2A\u6885"
+    stickerSprite: {fileID: 0}
+    photoSprite: {fileID: 21300000, guid: f95b090e2ffbf274c8145a9b3ff9cd4f, type: 3}
+    clueText: "\u5979\u4E0D\u559C\u6B22\u8FD9\u4E2A\u540D\u5B57\u3002"
+    stickerZonePosition: {x: -160, y: 120}
+    stickerZoneSize: {x: 150, y: 200}
+    nameTagZonePosition: {x: -160, y: -20}
+    nameTagZoneSize: {x: 200, y: 60}
+    hasSticker: 0
+  - characterId: liu_hongju
+    displayName: "\u5218\u6D2A\u83CA"
+    stickerSprite: {fileID: 0}
+    photoSprite: {fileID: 0}
+    clueText: "\u4E09\u59B9\uFF0C\u94C1\u76AE\u7CD6\u76D2\u91CC\u88C5\u7740\u6084\u6084\u8BDD\u3002"
+    stickerZonePosition: {x: 80, y: 120}
+    stickerZoneSize: {x: 150, y: 200}
+    nameTagZonePosition: {x: 80, y: -20}
+    nameTagZoneSize: {x: 200, y: 60}
+    hasSticker: 1
+  - characterId: liu_hongfang
+    displayName: "\u5218\u6D2A\u82B3"
+    stickerSprite: {fileID: 0}
+    photoSprite: {fileID: 21300000, guid: 6f09b81ef7ea43240b43c8a8cbcbd3a3, type: 3}
+    clueText: "\u56DB\u59B9\uFF0C\u559C\u6B22\u9178\u4E00\u70B9\u7684\u5473\u9053\u3002"
+    stickerZonePosition: {x: 320, y: 120}
+    stickerZoneSize: {x: 150, y: 200}
+    nameTagZonePosition: {x: 320, y: -20}
+    nameTagZoneSize: {x: 200, y: 60}
+    hasSticker: 1
+  - characterId: liu_hongqiang
+    displayName: "\u5218\u6D2A\u5F3A"
+    stickerSprite: {fileID: 21300000, guid: ceac61de1f5b0eb4fa9d2c43b7d3047e, type: 3}
+    photoSprite: {fileID: 21300000, guid: a48a096c801b9034284cbf69c5af662c, type: 3}
+    clueText: "\u4E94\u5F1F\uFF0C\u7231\u5403\u751C\u7684\u3002"
+    stickerZonePosition: {x: -280, y: -180}
+    stickerZoneSize: {x: 150, y: 200}
+    nameTagZonePosition: {x: -280, y: -320}
+    nameTagZoneSize: {x: 200, y: 60}
+    hasSticker: 1
+  - characterId: liu_hongbin
+    displayName: "\u5218\u6D2A\u658C"
+    stickerSprite: {fileID: 0}
+    photoSprite: {fileID: 0}
+    clueText: "\u516D\u5F1F\uFF0C\u5C0F\u6728\u8F66\u5431\u5440\u54CD\u3002"
+    stickerZonePosition: {x: 200, y: -180}
+    stickerZoneSize: {x: 150, y: 200}
+    nameTagZonePosition: {x: 200, y: -320}
+    nameTagZoneSize: {x: 200, y: 60}
+    hasSticker: 1
+  realisticFamilyPortrait: {fileID: 21300000, guid: ba3c99981ae93554b8ae12330ed69d08, type: 3}
+  requiredPhotoIds:
+  - photo_hongqiang
+  - photo_hongfang
+  - bagua_old_family_photo
