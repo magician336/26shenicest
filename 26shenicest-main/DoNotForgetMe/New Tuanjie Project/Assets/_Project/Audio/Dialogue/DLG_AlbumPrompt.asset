@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0709b0b858bbf243bfedb4c791a4edb, type: 3}
+  m_Name: DLG_AlbumPrompt
+  m_EditorClassIdentifier: 
+  sequenceId: DLG_AlbumPrompt
+  entries:
+  - speaker: "\u7CFB\u7EDF"
+    text: "\u5DF2\u7ECF\u6536\u96C6\u5230\u6240\u6709\u4E94\u540D\u5BB6\u4EBA\u7684\u7167\u7247\u4E86\uFF0C\u73B0\u5728\u56DE\u5230\u4E66\u684C\uFF0C\u628A\u4ED6\u4EEC\u653E\u56DE\u5168\u5BB6\u798F\u5427"
+    isInternal: 0
+    audioClip: {fileID: 0}
+  cinematicMode: 1
+  nextMiniGameId: album_family_portrait
+  nextDialogueId: 
+  nextSceneName: 
+  triggerGameEnded: 0

@@ -1,0 +1,52 @@
+# Unity / Tuanjie generated directories
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+[Rr]ecordings/
+
+# Generated crash reports and backups
+sysinfo.txt
+*.stacktrace
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Unity-generated IDE files
+*.csproj
+*.sln
+*.suo
+*.user
+*.userprefs
+*.unityproj
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+Desktop.ini
+.vs/
+.vscode/
+
+# Codely CLI local tooling & runtime state (265MB, machine-specific)
+.codely-cli/
+.codely.packages/
+.com-unity-codely.json
+
+# Build output
+*.apk
+*.aab
+*.unitypackage
+
+# Photon Fusion credentials are local environment configuration.
+Assets/Photon/Fusion/Resources/PhotonAppSettings.asset

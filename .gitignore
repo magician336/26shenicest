@@ -1,0 +1,43 @@
+node_modules/
+*.log
+Temp/
+Obj/
+Build/
+Library/
+Logs/
+UserSettings/
+*.csproj
+*.sln
+.vs/
+*.unitypackage
+
+# CLI temp files
+.codely-cli/auto-saves/
+.codely-cli/settings.json
+.codely/clipboard/
+.workbuddy/
+compile_log.txt
+
+# Tuanjie/Unity generated
+*.apk
+*.aab
+*.unitypackage.meta
+SysInfo.txt
+crashlytics-build.properties
+MemoryCaptures/
+
+# Mono developing / VS
+ExportedObj/
+*.svd
+*.mdb
+*.opendb
+*.VC.db
+
+# OS generated
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f68f528130a7c13429ace33da3b64416, type: 3}
+  m_Name: AudioLibrary
+  m_EditorClassIdentifier: 
+  sfxEntries:
+  - id: 0
+    clip: {fileID: 8300000, guid: 04e29810c18dccc4b9e8113c10570062, type: 3}
+  - id: 1
+    clip: {fileID: 8300000, guid: 7c58babe14e7a16469239c0fe05704b7, type: 3}
+  - id: 2
+    clip: {fileID: 8300000, guid: 04e29810c18dccc4b9e8113c10570062, type: 3}
+  - id: 3
+    clip: {fileID: 8300000, guid: 0b9685e9964bcb74fbb06a4630c7317f, type: 3}
+  - id: 4
+    clip: {fileID: 8300000, guid: 2ad7764cf1c9b294383af6d9c1c100a0, type: 3}
+  - id: 5
+    clip: {fileID: 8300000, guid: 2417b18e015836145b4ea5946c7fb677, type: 3}
+  - id: 6
+    clip: {fileID: 8300000, guid: 66225e7ef39386641b8f4d643f13f27f, type: 3}
+  - id: 7
+    clip: {fileID: 8300000, guid: 2417b18e015836145b4ea5946c7fb677, type: 3}
+  - id: 8
+    clip: {fileID: 8300000, guid: 7c58babe14e7a16469239c0fe05704b7, type: 3}
+  - id: 9
+    clip: {fileID: 8300000, guid: 47ecbc9b36475ad47a4ea6a47614d5f1, type: 3}
+  - id: 10
+    clip: {fileID: 8300000, guid: 7c58babe14e7a16469239c0fe05704b7, type: 3}
+  bgmEntries:
+  - id: 1
+    clip: {fileID: 8300000, guid: 92b8acce7c3c1594198a486498778735, type: 3}
+  ambEntries:
+  - id: 0
+    clip: {fileID: 8300000, guid: cd0cfcf9718158740a3468fa46b508af, type: 3}
